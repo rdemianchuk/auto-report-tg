@@ -2,8 +2,6 @@
 Entry point — starts the Telegram bot and APScheduler.
 """
 import logging
-import os
-print("DEBUG ENV KEYS:", sorted(k for k in os.environ if not k.startswith("_")), flush=True)
 from telegram.ext import Application
 
 from config import TELEGRAM_BOT_TOKEN

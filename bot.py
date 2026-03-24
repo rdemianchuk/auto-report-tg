@@ -17,7 +17,6 @@ from telegram.ext import (
     filters,
 )
 
-from config import TELEGRAM_CHAT_ID
 from scheduler import cancel_schedule, get_schedule_info, schedule_report
 
 logger = logging.getLogger(__name__)
@@ -65,7 +64,7 @@ async def _generate_and_send(update: Update, context: ContextTypes.DEFAULT_TYPE)
         text = build_report(current, previous, summary)
         await status.delete()
         await context.bot.send_message(
-            chat_id=TELEGRAM_CHAT_ID,
+            chat_id=msg.chat_id,
             text=text,
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
@@ -137,7 +136,7 @@ async def cb_schedule_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
 
-    schedule_report(bot=context.bot)
+    schedule_report(bot=context.bot, chat_id=update.effective_chat.id)
     info = get_schedule_info()
 
     await query.edit_message_text(

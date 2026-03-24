@@ -14,7 +14,6 @@ from config import (
     DEFAULT_SCHEDULE_DAY,
     DEFAULT_SCHEDULE_HOUR,
     DEFAULT_SCHEDULE_MINUTE,
-    TELEGRAM_CHAT_ID,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ def get_scheduler() -> AsyncIOScheduler:
     return _scheduler
 
 
-async def _send_report(bot: Bot) -> None:
+async def _send_report(bot: Bot, chat_id: int) -> None:
     """Scheduled job: generate and send the report."""
     # Import here to avoid circular imports
     from google_ads_client import fetch_last_two_months
@@ -43,7 +42,7 @@ async def _send_report(bot: Bot) -> None:
         summary = generate_summary(current, previous)
         text = build_report(current, previous, summary)
         await bot.send_message(
-            chat_id=TELEGRAM_CHAT_ID,
+            chat_id=chat_id,
             text=text,
             parse_mode="Markdown",
             disable_web_page_preview=True,
@@ -52,13 +51,14 @@ async def _send_report(bot: Bot) -> None:
     except Exception:
         logger.exception("Failed to send scheduled report.")
         await bot.send_message(
-            chat_id=TELEGRAM_CHAT_ID,
+            chat_id=chat_id,
             text="⚠️ Не вдалося сформувати звіт. Перевірте логи.",
         )
 
 
 def schedule_report(
     bot: Bot,
+    chat_id: int,
     day: int = DEFAULT_SCHEDULE_DAY,
     hour: int = DEFAULT_SCHEDULE_HOUR,
     minute: int = DEFAULT_SCHEDULE_MINUTE,
@@ -73,7 +73,7 @@ def schedule_report(
         _send_report,
         trigger=CronTrigger(day=day, hour=hour, minute=minute),
         id=JOB_ID,
-        kwargs={"bot": bot},
+        kwargs={"bot": bot, "chat_id": chat_id},
         replace_existing=True,
         name="Monthly Google Ads report",
     )
